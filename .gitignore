@@ -1,0 +1,73 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local databases
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+
+# Generated ML models and runtime uploads
+models/
+!models/.gitkeep
+uploads/
+!uploads/.gitkeep
+
+# Generated avatar extraction review files
+assets/sprites/_qa_*.png
+
+# Packaging and build output
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+models/*.pkl
+
+# Logs and runtime files
+*.log
+*.pid
+*.sock
+
+# OS/editor files
+.DS_Store
+Desktop.ini
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker/local build noise
+postgres_data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
