@@ -11,3 +11,7 @@ def forbidden(message: str = "Not allowed") -> HTTPException:
 
 def bad_request(message: str) -> HTTPException:
     return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+
+
+def conflict(message: str) -> HTTPException:
+    return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=message)

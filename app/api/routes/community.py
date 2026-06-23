@@ -29,6 +29,8 @@ async def submit(weekly_quest_id: str, payload: CommunitySubmitRequest, current_
         user_quest = await get_owned_quest(db, current_user.id, payload.user_quest_id)
         if user_quest.source != QuestSource.weekly or user_quest.status != QuestStatus.completed:
             raise bad_request("Community submissions require a completed weekly quest")
+        if _weekly_quest_id_from_context(user_quest) not in {None, weekly_quest_id}:
+            raise bad_request("Completed quest does not belong to this weekly challenge")
     post = CommunityPost(user_id=current_user.id, weekly_quest_id=weekly_quest_id, user_quest_id=payload.user_quest_id, photo_url=payload.photo_url, caption=payload.caption)
     db.add(post)
     await db.commit()
@@ -49,3 +51,9 @@ async def leaderboard(weekly_quest_id: str, db: AsyncSession = Depends(get_db)):
         raise not_found("Weekly quest not found")
     posts = list(await db.scalars(select(CommunityPost).where(CommunityPost.weekly_quest_id == weekly_quest_id).order_by(CommunityPost.likes_count.desc(), CommunityPost.created_at.asc())))
     return [{"rank": idx + 1, "user_id": post.user_id, "likes_count": post.likes_count, "post_id": post.id} for idx, post in enumerate(posts)]
+
+
+def _weekly_quest_id_from_context(user_quest) -> str | None:
+    context = user_quest.context_snapshot or {}
+    value = context.get("weekly_quest_id")
+    return value if isinstance(value, str) else None

@@ -17,7 +17,7 @@ class WeeklyQuestOut(BaseModel):
 
 class CommunitySubmitRequest(BaseModel):
     user_quest_id: str | None = None
-    photo_url: str = Field(min_length=1, max_length=2048)
+    photo_url: str | None = Field(default=None, min_length=1, max_length=2048)
     caption: str | None = Field(default=None, max_length=500)
 
 
@@ -26,7 +26,7 @@ class CommunityPostOut(BaseModel):
     user_id: str
     weekly_quest_id: str | None
     user_quest_id: str | None
-    photo_url: str
+    photo_url: str | None
     caption: str | None
     likes_count: int
 

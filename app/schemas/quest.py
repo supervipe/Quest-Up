@@ -51,7 +51,20 @@ class QuestCompletionOut(BaseModel):
     id: str
     xp_awarded: int
     coins_awarded: int
+    level_up_coins: int
     item_awarded_id: str | None
+    duplicate_item_id: str | None
+    duplicate_compensation_coins: int
+    achievement_xp_bonus: int
+    achievement_coin_bonus: int
+    unlocked_achievements: list[dict]
     shared_to_community: bool
+    previous_level: int
+    level: int
+    leveled_up: bool
+    total_xp: int
+    total_coins: int
+    current_streak: int
+    longest_streak: int
 
     model_config = {"from_attributes": True}
