@@ -80,7 +80,13 @@ async def seed_npcs(db):
 
 
 async def seed_weekly(db, items):
-    if await db.scalar(select(WeeklyCommunityQuest).where(WeeklyCommunityQuest.status == WeeklyQuestStatus.active)):
+    if await db.scalar(
+        select(WeeklyCommunityQuest).where(
+            WeeklyCommunityQuest.status == WeeklyQuestStatus.active,
+            WeeklyCommunityQuest.starts_at <= utcnow(),
+            WeeklyCommunityQuest.ends_at > utcnow(),
+        )
+    ):
         return
     db.add(WeeklyCommunityQuest(
         title="Neighborhood Snapshot Challenge",

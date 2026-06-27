@@ -33,8 +33,8 @@ ENV/
 *.sqlite3-*
 
 # Generated ML models and runtime uploads
-models/
-!models/.gitkeep
+/models/
+!/models/.gitkeep
 uploads/
 !uploads/.gitkeep
 
@@ -47,7 +47,7 @@ dist/
 *.egg-info/
 .eggs/
 pip-wheel-metadata/
-models/*.pkl
+/models/*.pkl
 
 # Logs and runtime files
 *.log

@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.constants import QuestSource, QuestStatus, WeeklyQuestStatus
+from app.core.database import utcnow
 from app.models.community import WeeklyCommunityQuest
 from app.models.quest import UserQuest
 from app.models.user import User
@@ -11,7 +12,11 @@ class WeeklyQuestService:
     async def current_weekly(self, db: AsyncSession) -> WeeklyCommunityQuest | None:
         return await db.scalar(
             select(WeeklyCommunityQuest)
-            .where(WeeklyCommunityQuest.status == WeeklyQuestStatus.active)
+            .where(
+                WeeklyCommunityQuest.status == WeeklyQuestStatus.active,
+                WeeklyCommunityQuest.starts_at <= utcnow(),
+                WeeklyCommunityQuest.ends_at > utcnow(),
+            )
             .order_by(WeeklyCommunityQuest.starts_at.desc())
         )
 

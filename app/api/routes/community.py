@@ -1,10 +1,12 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_owned_quest
 from app.core.constants import QuestSource, QuestStatus, WeeklyQuestStatus
-from app.core.database import get_db
+from app.core.database import get_db, utcnow
 from app.core.exceptions import bad_request, not_found
 from app.models.community import CommunityPost, WeeklyCommunityQuest
 from app.models.user import User
@@ -15,7 +17,15 @@ router = APIRouter(prefix="/community", tags=["community"])
 
 @router.get("/weekly/current", response_model=WeeklyQuestOut | None)
 async def current_weekly(db: AsyncSession = Depends(get_db)):
-    return await db.scalar(select(WeeklyCommunityQuest).where(WeeklyCommunityQuest.status == WeeklyQuestStatus.active).order_by(WeeklyCommunityQuest.starts_at.desc()))
+    return await db.scalar(
+        select(WeeklyCommunityQuest)
+        .where(
+            WeeklyCommunityQuest.status == WeeklyQuestStatus.active,
+            WeeklyCommunityQuest.starts_at <= utcnow(),
+            WeeklyCommunityQuest.ends_at > utcnow(),
+        )
+        .order_by(WeeklyCommunityQuest.starts_at.desc())
+    )
 
 
 @router.post("/weekly/{weekly_quest_id}/submit", response_model=CommunityPostOut)
@@ -23,7 +33,7 @@ async def submit(weekly_quest_id: str, payload: CommunitySubmitRequest, current_
     weekly_quest = await db.get(WeeklyCommunityQuest, weekly_quest_id)
     if not weekly_quest:
         raise not_found("Weekly quest not found")
-    if weekly_quest.status != WeeklyQuestStatus.active:
+    if weekly_quest.status != WeeklyQuestStatus.active or _aware(weekly_quest.ends_at) <= utcnow():
         raise bad_request("Weekly quest is not active")
     if payload.user_quest_id:
         user_quest = await get_owned_quest(db, current_user.id, payload.user_quest_id)
@@ -57,3 +67,9 @@ def _weekly_quest_id_from_context(user_quest) -> str | None:
     context = user_quest.context_snapshot or {}
     value = context.get("weekly_quest_id")
     return value if isinstance(value, str) else None
+
+
+def _aware(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value
