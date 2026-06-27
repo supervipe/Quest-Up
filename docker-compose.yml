@@ -19,6 +19,8 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
+    networks:
+      - questup_backend
     healthcheck:
       test:
         [
@@ -42,6 +44,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      questup_backend:
+        aliases:
+          - db
+          - postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d questup"]
       interval: 5s
@@ -52,6 +59,10 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    networks:
+      questup_backend:
+        aliases:
+          - redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -67,6 +78,10 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
+    networks:
+      questup_backend:
+        aliases:
+          - test-db
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d questup_test"]
       interval: 5s
@@ -75,3 +90,7 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  questup_backend:
+    driver: bridge
