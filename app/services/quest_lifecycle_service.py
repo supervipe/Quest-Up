@@ -40,5 +40,10 @@ class QuestLifecycleService:
             event_type=event_type,
             quest_type=quest.quest_type,
             difficulty=quest.difficulty,
-            context={"source": quest.source.value, "template_id": quest.template_id},
+            context={
+                "source": quest.source.value,
+                "template_id": quest.template_id,
+                "user_level": user.level,
+                "quest_status_before_event": quest.status.value,
+            },
         )

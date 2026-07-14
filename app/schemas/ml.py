@@ -22,3 +22,8 @@ class MLEventRequest(BaseModel):
     difficulty: int | None = Field(default=None, ge=1, le=5)
     rating: int | None = Field(default=None, ge=1, le=5)
     context: dict | None = None
+
+
+class TrainingDatasetPreviewRequest(BaseModel):
+    include_unlabeled: bool = False
+    limit: int = Field(default=20, ge=1, le=200)

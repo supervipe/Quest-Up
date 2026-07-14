@@ -9,6 +9,7 @@ from app.core.config import get_settings
 from app.core.constants import QuestSource, QuestStatus
 from app.core.database import utcnow
 from app.core.exceptions import conflict
+from app.ml.live_ranker import LiveQuestRanker
 from app.models.ml import MLInteraction
 from app.models.quest import QuestTemplate, UserQuest
 from app.models.user import User, UserProfile
@@ -24,6 +25,7 @@ class QuestGenerationService:
         self.weather = WeatherService()
         self.recommendations = RecommendationService()
         self.difficulty = DifficultyService()
+        self.live_ranker = LiveQuestRanker()
 
     async def generate_normal_quest(
         self,
@@ -76,7 +78,22 @@ class QuestGenerationService:
             local_time,
             recent_quests,
         )
-        selected = random.choices(scored, weights=[item.total for item in scored], k=1)[0]
+        model_scores = self.live_ranker.score_templates(
+            user=user,
+            profile=profile,
+            templates=[item.template for item in scored],
+            places=places,
+            weather=weather,
+            local_time=local_time,
+            recent_quests=recent_quests,
+        )
+        hybrid_weights = [
+            self._hybrid_score(item.total, model_scores.get(item.template.id))
+            for item in scored
+        ]
+        selected = random.choices(scored, weights=hybrid_weights, k=1)[0]
+        selected_model_score = model_scores.get(selected.template.id)
+        selected_hybrid_score = self._hybrid_score(selected.total, selected_model_score)
         chosen = selected.template
         place = self._best_place(chosen.location_type, places)
         preferred_difficulty = profile.preferred_difficulty if profile else None
@@ -107,10 +124,15 @@ class QuestGenerationService:
                 "local_hour": local_time.hour,
                 "place_types": sorted({place["place_type"] for place in places}),
                 "selection_score": round(selected.total, 4),
+                "model_interest_score": round(selected_model_score, 4) if selected_model_score is not None else None,
+                "hybrid_selection_score": round(selected_hybrid_score, 4),
+                "ranking_model": self.live_ranker.metadata if self.live_ranker.available else None,
                 "score_components": {
                     "context": round(selected.context, 4),
                     "preference": round(selected.preference, 4),
                     "randomness": round(selected.randomness, 4),
+                    "model": round(selected_model_score, 4) if selected_model_score is not None else None,
+                    "hybrid": round(selected_hybrid_score, 4),
                 },
             },
         )
@@ -123,7 +145,23 @@ class QuestGenerationService:
                 event_type="shown",
                 quest_type=quest.quest_type,
                 difficulty=quest.difficulty,
-                context={"source": "normal", "template_id": chosen.id},
+                context={
+                    "source": "normal",
+                    "template_id": chosen.id,
+                    "user_level": user.level,
+                    "preferred_quest_types": profile.preferred_quest_types if profile else None,
+                    "preferred_difficulty": profile.preferred_difficulty if profile else None,
+                    "local_hour": local_time.hour,
+                    "place_types": sorted({place["place_type"] for place in places}),
+                    "weather_condition": weather.get("condition"),
+                    "rule_selection_score": round(selected.total, 4),
+                    "model_interest_score": round(selected_model_score, 4) if selected_model_score is not None else None,
+                    "hybrid_selection_score": round(selected_hybrid_score, 4),
+                    "ranking_model": self.live_ranker.metadata if self.live_ranker.available else None,
+                    "rule_context_score": round(selected.context, 4),
+                    "rule_preference_score": round(selected.preference, 4),
+                    "rule_randomness_score": round(selected.randomness, 4),
+                },
             )
         )
         return quest
@@ -191,3 +229,8 @@ class QuestGenerationService:
             return None
         matches = [place for place in places if place["place_type"] == location_type]
         return min(matches, key=lambda place: place.get("distance_m", float("inf")), default=None)
+
+    def _hybrid_score(self, rule_score: float, model_score: float | None) -> float:
+        if model_score is None:
+            return rule_score
+        return max(0.01, 0.65 * rule_score + 0.35 * model_score)

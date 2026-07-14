@@ -12,6 +12,7 @@ class ProfileOut(BaseModel):
     home_lng: float | None
     location_sharing_enabled: bool
     community_sharing_enabled: bool
+    onboarding_completed: bool
 
     model_config = {"from_attributes": True}
 
@@ -25,6 +26,7 @@ class ProfileUpdate(BaseModel):
     home_lng: float | None = Field(default=None, ge=-180, le=180)
     location_sharing_enabled: bool | None = None
     community_sharing_enabled: bool | None = None
+    onboarding_completed: bool | None = None
 
     @field_validator("preferred_quest_types")
     @classmethod

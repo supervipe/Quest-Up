@@ -124,6 +124,10 @@ class ProgressionService:
                 rating=rating,
                 context={
                     "source": quest.source.value,
+                    "template_id": quest.template_id,
+                    "user_level_before_completion": previous_level,
+                    "user_level_after_completion": locked_user.level,
+                    "current_streak_after_completion": locked_user.current_streak,
                     "xp_awarded": calculation.xp_awarded,
                     "difficulty_multiplier": calculation.difficulty_multiplier,
                     "streak_multiplier": calculation.streak_multiplier,
@@ -139,7 +143,11 @@ class ProgressionService:
                     quest_type=quest.quest_type,
                     difficulty=quest.difficulty,
                     rating=rating,
-                    context={"source": quest.source.value},
+                    context={
+                        "source": quest.source.value,
+                        "template_id": quest.template_id,
+                        "user_level": locked_user.level,
+                    },
                 )
             )
 

@@ -55,6 +55,7 @@ class UserProfile(UUIDPrimaryKeyMixin, Base):
     home_lng: Mapped[float | None] = mapped_column(Numeric(10, 6))
     location_sharing_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     community_sharing_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     user: Mapped[User] = relationship(back_populates="profile")
 

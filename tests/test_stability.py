@@ -88,3 +88,27 @@ async def test_liveness_endpoint(client):
     response = await client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+async def test_new_user_profile_onboarding_defaults_false_and_can_update(client):
+    registered = await client.post(
+        "/auth/register",
+        json={
+            "email": "onboarding-new@example.com",
+            "password": "password123",
+            "display_name": "Onboard Hero",
+        },
+    )
+    headers = {"Authorization": f"Bearer {registered.json()['access_token']}"}
+
+    profile = await client.get("/profile", headers=headers)
+    assert profile.status_code == 200
+    assert profile.json()["onboarding_completed"] is False
+
+    updated = await client.put(
+        "/profile",
+        headers=headers,
+        json={"onboarding_completed": True},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["onboarding_completed"] is True
