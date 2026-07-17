@@ -39,6 +39,7 @@ class VerificationStatus(StrEnum):
 
 class Rarity(StrEnum):
     common = "common"
+    uncommon = "uncommon"
     rare = "rare"
     epic = "epic"
     legendary = "legendary"

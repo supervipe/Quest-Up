@@ -20,6 +20,7 @@ class ItemRewardResult:
 class RewardService:
     rarity_compensation = {
         Rarity.common: 10,
+        Rarity.uncommon: 15,
         Rarity.rare: 25,
         Rarity.epic: 60,
         Rarity.legendary: 120,

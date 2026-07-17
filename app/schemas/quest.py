@@ -41,6 +41,8 @@ class QuestOut(BaseModel):
     xp_reward: int
     coin_reward: int
     status: str
+    target_lat: float | None = None
+    target_lng: float | None = None
     target_place_name: str | None = None
     target_place_type: str | None = None
 

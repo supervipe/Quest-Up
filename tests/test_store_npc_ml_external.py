@@ -28,6 +28,21 @@ async def test_store_purchase_and_duplicate_rejected(client, auth_headers, db_se
     assert duplicate.status_code == 400
 
 
+async def test_store_catalog_includes_frontend_item_assets(client, auth_headers):
+    response = await client.get("/store/items", headers=auth_headers)
+    assert response.status_code == 200
+
+    items = response.json()
+    assert len(items) >= 91
+
+    by_key = {item["pixel_asset_key"]: item for item in items}
+    assert "item_001" in by_key
+    assert "item_084" in by_key
+    assert by_key["item_002"]["name"] == "Knight's Blade"
+    assert by_key["item_002"]["price_coins"] == 90
+    assert by_key["item_002"]["rarity"] == "uncommon"
+
+
 async def test_npc_does_not_spawn_before_three_minutes(client, auth_headers):
     start = await client.post("/walking/session/start", headers=auth_headers, json={"lat": 49.0, "lng": -123.0})
     session_id = start.json()["id"]

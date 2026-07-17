@@ -95,6 +95,24 @@ async def test_generation_records_score_context_and_shown_events(client, auth_he
     assert {event.user_quest_id for event in shown_events} == {quest.id for quest in quests}
 
 
+async def test_session_open_exposes_target_coordinates_for_map_pins(client, auth_headers):
+    opened = await client.post(
+        "/quests/session/open",
+        headers=auth_headers,
+        json={"lat": 49.2827, "lng": -123.1207, "timezone": "America/Vancouver"},
+    )
+    assert opened.status_code == 200
+
+    location_quests = [
+        quest
+        for quest in opened.json()["normal"]
+        if quest["target_place_name"] is not None
+    ]
+    assert location_quests
+    assert all(quest["target_lat"] is not None for quest in location_quests)
+    assert all(quest["target_lng"] is not None for quest in location_quests)
+
+
 async def test_accept_and_skip_record_lifecycle_events(client, auth_headers, db_session):
     opened = await client.post("/quests/session/open", headers=auth_headers, json={})
     first, second = opened.json()["normal"]
