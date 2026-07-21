@@ -23,6 +23,18 @@ class Settings(BaseSettings):
     npc_cooldown_hours: int = 3
     npc_min_walking_minutes: int = 3
     npc_min_distance_meters: float = 100
+    weekly_rollover_interval_seconds: int = 86400
+    cors_allow_origins: list[str] = [
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+    ]
+    cors_allow_origin_regex: str | None = r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

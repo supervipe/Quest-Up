@@ -1,7 +1,10 @@
+from datetime import timedelta, timezone
+
 import pytest
 from sqlalchemy import select
 
-from app.core.constants import QuestSource
+from app.core.constants import QuestSource, WeeklyQuestStatus
+from app.core.database import utcnow
 from app.models.community import CommunityPost, WeeklyCommunityQuest
 from app.models.quest import QuestCompletion, UserQuest
 
@@ -80,3 +83,49 @@ async def test_manual_weekly_submission_accepts_optional_photo(client, auth_head
     body = response.json()
     assert body["photo_url"] is None
     assert body["caption"] == "Text-only submission"
+
+
+@pytest.mark.asyncio
+async def test_current_weekly_rolls_over_when_seeded_week_has_expired(client, db_session):
+    now = utcnow()
+    expired = await db_session.scalar(select(WeeklyCommunityQuest))
+    expired.starts_at = now - timedelta(days=14)
+    expired.ends_at = now - timedelta(days=7)
+    expired.status = WeeklyQuestStatus.active
+    await db_session.commit()
+
+    response = await client.get("/community/weekly/current")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body is not None
+    assert body["id"] != expired.id
+
+    current = await db_session.get(WeeklyCommunityQuest, body["id"])
+    assert _aware(current.starts_at) <= now
+    assert _aware(current.ends_at) > now
+
+
+@pytest.mark.asyncio
+async def test_session_open_rolls_over_expired_weekly_before_user_quest(client, auth_headers, db_session):
+    now = utcnow()
+    expired = await db_session.scalar(select(WeeklyCommunityQuest))
+    expired.starts_at = now - timedelta(days=14)
+    expired.ends_at = now - timedelta(days=7)
+    expired.status = WeeklyQuestStatus.active
+    await db_session.commit()
+
+    response = await client.post("/quests/session/open", headers=auth_headers, json={})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["weekly"] is not None
+    assert body["weekly_community"] is not None
+    assert body["weekly_community"]["id"] != expired.id
+
+    user_weekly = await db_session.get(UserQuest, body["weekly"]["id"])
+    assert user_weekly.context_snapshot["weekly_quest_id"] == body["weekly_community"]["id"]
+
+
+def _aware(value):
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)

@@ -10,6 +10,7 @@ from app.models.avatar import AvatarItem
 from app.models.community import WeeklyCommunityQuest
 from app.models.npc import NPC
 from app.models.quest import QuestTemplate
+from app.services.weekly_quest_service import WeeklyQuestService
 
 
 async def seed() -> None:
@@ -171,26 +172,7 @@ async def seed_npcs(db):
 
 
 async def seed_weekly(db, items):
-    if await db.scalar(
-        select(WeeklyCommunityQuest).where(
-            WeeklyCommunityQuest.status == WeeklyQuestStatus.active,
-            WeeklyCommunityQuest.starts_at <= utcnow(),
-            WeeklyCommunityQuest.ends_at > utcnow(),
-        )
-    ):
-        return
-    db.add(WeeklyCommunityQuest(
-        title="Neighborhood Snapshot Challenge",
-        description="Take a photo that captures a hidden gem in your neighborhood and share it with the weekly community feed.",
-        quest_type=QuestType.location,
-        stat_category=StatCategory.exploration,
-        xp_reward=120,
-        coin_reward=50,
-        reward_item_id=items["weekly_cape"].id,
-        starts_at=utcnow(),
-        ends_at=utcnow() + timedelta(days=7),
-        status=WeeklyQuestStatus.active,
-    ))
+    await WeeklyQuestService().ensure_current_weekly(db)
 
 
 if __name__ == "__main__":

@@ -11,21 +11,16 @@ from app.core.exceptions import bad_request, not_found
 from app.models.community import CommunityPost, WeeklyCommunityQuest
 from app.models.user import User
 from app.schemas.community import CommunityPostOut, CommunitySubmitRequest, WeeklyQuestOut
+from app.services.weekly_quest_service import WeeklyQuestService
 
 router = APIRouter(prefix="/community", tags=["community"])
 
 
 @router.get("/weekly/current", response_model=WeeklyQuestOut | None)
 async def current_weekly(db: AsyncSession = Depends(get_db)):
-    return await db.scalar(
-        select(WeeklyCommunityQuest)
-        .where(
-            WeeklyCommunityQuest.status == WeeklyQuestStatus.active,
-            WeeklyCommunityQuest.starts_at <= utcnow(),
-            WeeklyCommunityQuest.ends_at > utcnow(),
-        )
-        .order_by(WeeklyCommunityQuest.starts_at.desc())
-    )
+    weekly = await WeeklyQuestService().ensure_current_weekly(db)
+    await db.commit()
+    return weekly
 
 
 @router.post("/weekly/{weekly_quest_id}/submit", response_model=CommunityPostOut)
