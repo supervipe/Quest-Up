@@ -90,9 +90,9 @@ def build_sprite_map() -> list[Sprite]:
     sprites.extend(
         grid_sprites(
             "Hairs.png",
-            (35, 35, 1505, 932),
-            8,
-            14,
+            (35, 35, 1637, 930),
+            9,
+            16,
             "hair",
             "hair",
             inset_fraction=0,
@@ -115,48 +115,48 @@ def build_sprite_map() -> list[Sprite]:
             "Clothes-Modern-Feminine.png",
             "clothes/modern_feminine",
             [
-                ("tops/common", (18, 101, 511, 508), 4, 5),
-                ("tops/uncommon", (524, 101, 1011, 508), 4, 5),
-                ("tops/rare_epic", (1023, 101, 1518, 508), 4, 5),
-                ("bottoms/common", (18, 599, 511, 997), 4, 5),
-                ("bottoms/uncommon", (524, 599, 1011, 997), 4, 5),
-                ("bottoms/rare_epic", (1023, 599, 1518, 997), 4, 5),
+                ("tops/common", (13, 94, 552, 475), 4, 5),
+                ("tops/uncommon", (564, 94, 1099, 475), 4, 5),
+                ("tops/rare_epic", (1111, 94, 1656, 475), 4, 5),
+                ("bottoms/common", (13, 552, 552, 918), 4, 5),
+                ("bottoms/uncommon", (564, 552, 1099, 918), 4, 5),
+                ("bottoms/rare_epic", (1111, 552, 1656, 918), 4, 5),
             ],
         ),
         (
             "Clothes-Modern-Masculine.png",
             "clothes/modern_masculine",
             [
-                ("tops/common", (13, 100, 504, 521), 5, 5),
-                ("tops/uncommon", (516, 100, 1007, 521), 5, 5),
-                ("tops/rare_epic", (1019, 100, 1520, 521), 5, 5),
-                ("bottoms/common", (13, 608, 504, 964), 4, 5),
-                ("bottoms/uncommon", (516, 608, 1007, 964), 4, 5),
-                ("bottoms/rare_epic", (1019, 608, 1520, 964), 4, 5),
+                ("tops/common", (21, 104, 551, 538), 5, 5),
+                ("tops/uncommon", (571, 104, 1098, 538), 5, 5),
+                ("tops/rare_epic", (1117, 104, 1649, 538), 5, 5),
+                ("bottoms/common", (21, 608, 551, 927), 4, 5),
+                ("bottoms/uncommon", (571, 608, 1098, 927), 4, 5),
+                ("bottoms/rare_epic", (1117, 608, 1649, 927), 4, 5),
             ],
         ),
         (
             "Clothes-RPG-Feminine.png",
             "clothes/rpg_feminine",
             [
-                ("tops/common", (13, 102, 511, 516), 4, 5),
-                ("tops/uncommon", (523, 102, 1002, 516), 4, 5),
-                ("tops/rare_epic", (1013, 102, 1521, 516), 4, 5),
-                ("bottoms/common", (13, 609, 511, 1007), 4, 5),
-                ("bottoms/uncommon", (523, 609, 1002, 1007), 4, 5),
-                ("bottoms/rare_epic", (1013, 609, 1521, 1007), 4, 5),
+                ("tops/common", (15, 89, 574, 495), 4, 6),
+                ("tops/uncommon", (582, 89, 1103, 495), 4, 6),
+                ("tops/rare_epic", (1111, 89, 1656, 495), 4, 6),
+                ("bottoms/common", (15, 566, 571, 929), 4, 6),
+                ("bottoms/uncommon", (578, 566, 1103, 929), 4, 6),
+                ("bottoms/rare_epic", (1111, 566, 1656, 929), 4, 6),
             ],
         ),
         (
             "Clothes-RPG-Neutral.png",
             "clothes/rpg_neutral",
             [
-                ("tops/common", (188, 122, 592, 533), 3, 5),
-                ("tops/uncommon", (604, 122, 1043, 533), 3, 5),
-                ("tops/rare_epic", (1054, 122, 1521, 533), 3, 5),
-                ("bottoms/common", (188, 630, 592, 953), 3, 5),
-                ("bottoms/uncommon", (604, 630, 1043, 953), 3, 5),
-                ("bottoms/rare_epic", (1054, 630, 1521, 953), 3, 5),
+                ("tops/common", (16, 116, 569, 458), 3, 5),
+                ("tops/uncommon", (582, 116, 1110, 458), 3, 5),
+                ("tops/rare_epic", (1121, 116, 1657, 458), 3, 5),
+                ("bottoms/common", (16, 571, 569, 909), 3, 5),
+                ("bottoms/uncommon", (582, 571, 1110, 909), 3, 5),
+                ("bottoms/rare_epic", (1121, 571, 1657, 909), 3, 5),
             ],
         ),
     ]
@@ -218,9 +218,9 @@ def transparent_crop(image: Image.Image) -> Image.Image | None:
             continue
         component_width = int(xs.max() - xs.min() + 1)
         component_height = int(ys.max() - ys.min() + 1)
-        if component_width <= max(5, round(width * 0.07)) and component_height >= height * 0.35:
+        if component_width <= max(8, round(width * 0.10)) and component_height >= height * 0.35:
             continue
-        if component_height <= max(5, round(height * 0.07)) and component_width >= width * 0.35:
+        if component_height <= max(8, round(height * 0.12)) and component_width >= width * 0.35:
             continue
         component_center_x = xs.mean()
         component_center_y = ys.mean()
@@ -238,7 +238,9 @@ def transparent_crop(image: Image.Image) -> Image.Image | None:
         return None
 
     keep = ndimage.binary_dilation(keep, iterations=1)
-    alpha = np.where(keep & (distance > 9), 255, 0).astype(np.uint8)
+    alpha = np.where(keep & (distance > 14), 255, 0).astype(np.uint8)
+    alpha = remove_top_background_rows(alpha, rgb)
+    alpha = remove_edge_line_artifacts(alpha)
 
     ys, xs = np.where(alpha > 0)
     if not len(xs):
@@ -251,6 +253,45 @@ def transparent_crop(image: Image.Image) -> Image.Image | None:
 
     rgba = np.dstack([rgb.astype(np.uint8), alpha])
     return Image.fromarray(rgba, "RGBA").crop((left, top, right, bottom))
+
+
+def remove_top_background_rows(alpha: np.ndarray, rgb: np.ndarray) -> np.ndarray:
+    height, width = alpha.shape
+    cleaned = alpha.copy()
+    for y in range(max(1, round(height * 0.18))):
+        xs = np.where(cleaned[y] > 0)[0]
+        if len(xs) < width * 0.70:
+            continue
+        median = np.median(rgb[y, xs], axis=0)
+        background_like = (
+            median[2] > median[0] + 8
+            and median[2] > median[1] + 6
+            and median.max() < 95
+        )
+        if background_like:
+            cleaned[y, :] = 0
+    return cleaned
+
+
+def remove_edge_line_artifacts(alpha: np.ndarray) -> np.ndarray:
+    labels, count = ndimage.label(alpha > 0)
+    if count == 0:
+        return alpha
+    height, width = alpha.shape
+    cleaned = alpha.copy()
+    for label_id in range(1, count + 1):
+        ys, xs = np.where(labels == label_id)
+        if not len(xs):
+            continue
+        component_width = int(xs.max() - xs.min() + 1)
+        component_height = int(ys.max() - ys.min() + 1)
+        near_horizontal_edge = ys.min() <= height * 0.18 or ys.max() >= height * 0.82
+        near_vertical_edge = xs.min() <= width * 0.12 or xs.max() >= width * 0.88
+        shallow_line = component_height <= max(12, round(height * 0.16)) and component_width >= width * 0.35
+        narrow_line = component_width <= max(8, round(width * 0.10)) and component_height >= height * 0.35
+        if (shallow_line and near_horizontal_edge) or (narrow_line and near_vertical_edge):
+            cleaned[labels == label_id] = 0
+    return cleaned
 
 
 def extract_irregular_grid(
@@ -321,6 +362,70 @@ def extract_irregular_grid(
     return outputs
 
 
+def extract_hair_sheet(source_image: Image.Image) -> dict[str, Image.Image]:
+    """Extract the hair sheet by connected components, sorted row-major."""
+    rgb = np.asarray(source_image.convert("RGB"), dtype=np.float32)
+    background = estimate_background(rgb)
+    distance = np.linalg.norm(rgb - background, axis=2)
+
+    mask = distance > 22
+    mask = ndimage.binary_dilation(mask, iterations=2)
+    mask = ndimage.binary_closing(mask, iterations=2)
+    labels, count = ndimage.label(mask)
+
+    components = []
+    for label_id in range(1, count + 1):
+        ys, xs = np.where(labels == label_id)
+        if len(xs) < 150:
+            continue
+        components.append(
+            {
+                "label": label_id,
+                "left": int(xs.min()),
+                "top": int(ys.min()),
+                "right": int(xs.max()) + 1,
+                "bottom": int(ys.max()) + 1,
+                "center_x": float(xs.mean()),
+                "center_y": float(ys.mean()),
+            }
+        )
+
+    rows: list[list[dict]] = []
+    for component in sorted(components, key=lambda item: item["center_y"]):
+        if not rows:
+            rows.append([component])
+            continue
+        row_center = sum(item["center_y"] for item in rows[-1]) / len(rows[-1])
+        if abs(component["center_y"] - row_center) <= 52:
+            rows[-1].append(component)
+        else:
+            rows.append([component])
+
+    ordered = []
+    for row in rows:
+        ordered.extend(sorted(row, key=lambda item: item["center_x"]))
+
+    outputs: dict[str, Image.Image] = {}
+    rgba = np.dstack([rgb.astype(np.uint8), np.zeros(distance.shape, dtype=np.uint8)])
+    for index, component in enumerate(ordered, start=1):
+        component_mask = labels == component["label"]
+        alpha = np.where(component_mask & (distance > 8), 255, 0).astype(np.uint8)
+        ys, xs = np.where(alpha > 0)
+        if not len(xs):
+            continue
+        padding = 3
+        left = max(0, int(xs.min()) - padding)
+        top = max(0, int(ys.min()) - padding)
+        right = min(rgb.shape[1], int(xs.max()) + padding + 1)
+        bottom = min(rgb.shape[0], int(ys.max()) + padding + 1)
+        sprite_rgba = rgba.copy()
+        sprite_rgba[:, :, 3] = alpha
+        outputs[f"hair/hair_{index:03d}.png"] = Image.fromarray(sprite_rgba, "RGBA").crop(
+            (left, top, right, bottom)
+        )
+    return outputs
+
+
 def create_qa_preview(paths: list[Path]) -> None:
     tile_size = 180
     columns = 5
@@ -369,6 +474,33 @@ def create_category_preview(folder: Path, output_name: str, columns: int) -> Non
     preview.save(OUTPUT_DIR / output_name, optimize=True)
 
 
+def create_clothes_previews() -> None:
+    for style_dir in sorted((OUTPUT_DIR / "clothes").iterdir()):
+        if not style_dir.is_dir():
+            continue
+        paths = sorted(style_dir.glob("**/*.png"))
+        if not paths:
+            continue
+        tile_size = 104
+        columns = 12
+        rows = (len(paths) + columns - 1) // columns
+        preview = Image.new("RGB", (columns * tile_size, rows * tile_size), "white")
+        for index, path in enumerate(paths):
+            sprite = Image.open(path).convert("RGBA")
+            sprite.thumbnail((tile_size - 10, tile_size - 10), Image.Resampling.NEAREST)
+            tile = Image.new("RGB", (tile_size, tile_size), "white")
+            pixels = tile.load()
+            square = 13
+            for y in range(tile_size):
+                for x in range(tile_size):
+                    pixels[x, y] = (226, 226, 226) if (x // square + y // square) % 2 else (250, 250, 250)
+            x = (tile_size - sprite.width) // 2
+            y = (tile_size - sprite.height) // 2
+            tile.paste(sprite, (x, y), sprite)
+            preview.paste(tile, ((index % columns) * tile_size, (index // columns) * tile_size))
+        preview.save(OUTPUT_DIR / f"_qa_clothes_{style_dir.name}.png", optimize=True)
+
+
 def main() -> None:
     if OUTPUT_DIR.exists():
         shutil.rmtree(OUTPUT_DIR)
@@ -384,7 +516,10 @@ def main() -> None:
         source_sprites = [sprite for sprite in sprite_map if sprite.source == source_name]
         source_image = Image.open(ASSETS_DIR / source_name).convert("RGB")
         source_images[source_name] = source_image
-        irregular_outputs.update(extract_irregular_grid(source_image, source_sprites))
+        if source_name == "Hairs.png":
+            irregular_outputs.update(extract_hair_sheet(source_image))
+        else:
+            irregular_outputs.update(extract_irregular_grid(source_image, source_sprites))
 
     for sprite in sprite_map:
         if sprite.source not in source_images:
@@ -428,8 +563,9 @@ def main() -> None:
         OUTPUT_DIR / "items/item_084.png",
     ]
     create_qa_preview(preview_paths)
-    create_category_preview(OUTPUT_DIR / "hair", "_qa_hair.png", columns=14)
+    create_category_preview(OUTPUT_DIR / "hair", "_qa_hair.png", columns=16)
     create_category_preview(OUTPUT_DIR / "items", "_qa_items.png", columns=14)
+    create_clothes_previews()
     print(f"Extracted {len(manifest)} sprites into {OUTPUT_DIR}")
     if failed:
         print(f"Failed to extract {len(failed)} sprites; see manifest.json")

@@ -97,7 +97,10 @@ class QuestGenerationService:
         chosen = selected.template
         place = self._best_place(chosen.location_type, places)
         preferred_difficulty = profile.preferred_difficulty if profile else None
-        base_difficulty = preferred_difficulty or chosen.base_difficulty
+        base_difficulty = self._difficulty_for_preference(
+            chosen.base_difficulty,
+            preferred_difficulty,
+        )
         difficulty = self.difficulty.adapt(base_difficulty)
         title = chosen.title if not place else f"{chosen.title}: {place['name']}"
         description = chosen.description_template.format(place_name=place["name"] if place else "somewhere nearby")
@@ -234,3 +237,14 @@ class QuestGenerationService:
         if model_score is None:
             return rule_score
         return max(0.01, 0.65 * rule_score + 0.35 * model_score)
+
+    def _difficulty_for_preference(
+        self,
+        template_difficulty: int,
+        preferred_difficulty: int | None,
+    ) -> int:
+        if preferred_difficulty is None or preferred_difficulty == 3:
+            return template_difficulty
+
+        adjustment = 1 if preferred_difficulty > 3 else -1
+        return max(1, min(5, template_difficulty + adjustment))
